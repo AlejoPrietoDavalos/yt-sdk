@@ -4,3 +4,4 @@ venv/
 .env
 
 _ignore/
+data/
