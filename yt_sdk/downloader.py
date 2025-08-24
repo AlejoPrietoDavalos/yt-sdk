@@ -49,7 +49,7 @@ def _extract_info(*, ydl: YoutubeDL, youtube_id: str) -> dict:
 class YoutubeDownloader:
     def __init__(self, *, path_folder: Path):
         self.path_folder = path_folder
-        self.path_folder.mkdir(exists_ok=True, parents=True)
+        self.path_folder.mkdir(exist_ok=True, parents=True)
 
     def video_by_youtube_id(self, *, youtube_id: str) -> None:
         raise_if_not_valid_youtube_id(youtube_id=youtube_id)
