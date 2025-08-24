@@ -31,19 +31,6 @@ def url2youtube_id(*, url: str) -> str:
     identificador de video válido (11 caracteres alfanuméricos, 
     incluyendo '-' y '_') en parámetros comunes como `v=` o rutas 
     como `/embed/` o `/v/`.
-
-    Args:
-        url (str): URL completa del video de YouTube.
-
-    Returns:
-        `youtube_id`: String de 11 caracteres.
-        si se encuentra y la URL es válida; de lo contrario, `None`.
-
-    Ejemplos:
-        >>> youtube_id_from_url(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        'dQw4w9WgXcQ'
-        >>> youtube_id_from_url(url="https://www.google.com/")
-        None
     """
     parsed_url = urlparse(url)
     if parsed_url.netloc not in ["www.youtube.com", "youtube.com"]:
