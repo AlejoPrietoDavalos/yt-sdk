@@ -2,7 +2,7 @@ from typing import Optional, List
 from urllib.parse import urlparse
 import re
 
-from youtube_sdk.typings import T_YoutubeId
+from yt_sdk.typings import T_YoutubeId
 
 
 def youtube_id_from_url(*, url: str) -> Optional[T_YoutubeId]:

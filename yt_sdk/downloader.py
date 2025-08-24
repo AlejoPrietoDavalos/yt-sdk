@@ -1,3 +1,4 @@
+from typing import List
 from pathlib import Path
 import logging
 import json
@@ -28,45 +29,53 @@ def youtube_id_to_url(*, youtube_id: str) -> str:
 
 
 class YoutubeDownloader:
-    def __init__(self):
-        ...
+    def __init__(self, *, path_folder_output: Path):
+        self.path_folder_output = path_folder_output
 
     def extract_info(self, *, ydl: YoutubeDL, youtube_id: str) -> dict:
-        yt_info = ydl.extract_info(youtube_id_to_url(youtube_id=youtube_id), download=True)
+        url = youtube_id_to_url(youtube_id=youtube_id)
+        yt_info = ydl.extract_info(url, download=True)
         
         # Filtra los campos no serializables
         yt_info = serialize_yt_info(yt_info)
         
         for field_to_delete in self.info_fields_to_delete():
             yt_info.pop(field_to_delete)
-        
-        # Path donde descarga el audio dentro de la maquina.
-        #path_audio = Path(yt_info["requested_downloads"][0]["filepath"])
 
         with open(self.paths.info, "w") as f:
             json.dump(yt_info, f, indent=INDENT)
 
-    def audio(self) -> None:
+    def audio(self, *, youtube_id: str) -> None:
         """Solo descarga el audio del video en formato `mp3`.
         - TODO: Ver como descargar el resto de formatos y posibilidades, abstraer.
         """
         """
         - Crea un folder en `path_out/<youtube_id>/<youtube_id>.mp3`.
         """
-        logger.info(f"- Download audio - youtube_id={self.youtube_id}")
-        with YoutubeDL(self.get_options_youtube_dl()) as ydl:
+        logger.info(f"- Download audio - youtube_id={youtube_id}")
+        yt_options = self.get_options_youtube_dl(youtube_id=youtube_id)
+        with YoutubeDL(yt_options) as ydl:
             yt_info = self.extract_info(ydl=ydl)
             # --> TODO: Se puede seguir procesando el yt_info.
 
-    def get_options_youtube_dl(self, *, path_folder: Path) -> dict:
+    def get_options_youtube_dl(self, *, youtube_id: str) -> dict:
         return {
             "format": "bestaudio/best",
-            "outtmpl": str(path_folder / f"{self.youtube_id}.%(ext)s"),
+            "outtmpl": str(self.path_folder_output / f"{youtube_id}.%(ext)s"),
             "postprocessors": [
                 {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192"
+                    "key": "FFmpegExtractAudio",    # TODO: Ver que se puede tocar acá.
+                    "preferredcodec": "mp3",        # TODO: Ver que se puede tocar acá.
+                    "preferredquality": "192"       # TODO: Ver que se puede tocar acá.
                 }
             ]
         }
+
+    @staticmethod
+    def info_fields_to_delete() -> List[str]:
+        """ Campos para borrar del info, son pesados, ver si sirve el dato."""
+        return [
+            "formats",
+            "thumbnails",
+            "heatmap"       #TODO: heatmap -> Graficar esto. Creo que es la forma de las ondas.
+        ]
