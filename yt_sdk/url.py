@@ -5,7 +5,7 @@ import re
 from yt_sdk.typings import T_YoutubeId
 
 
-def youtube_id_from_url(*, url: str) -> Optional[T_YoutubeId]:
+def url2youtube_id(*, url: str) -> Optional[T_YoutubeId]:
     """
     Extrae el `youtube_id` a partir de una URL.
 
@@ -36,3 +36,7 @@ def youtube_id_from_url(*, url: str) -> Optional[T_YoutubeId]:
     pattern = r"(?:v=|/)([0-9A-Za-z_-]{11})(?=$|[^0-9A-Za-z_-])"
     match = re.search(pattern, url)
     return match.group(1) if match else None
+
+def youtube_id2url(*, youtube_id: str) -> str:
+    """TODO: Esto es correcto?"""
+    return f"https://www.youtube.com/watch?v={youtube_id}"
