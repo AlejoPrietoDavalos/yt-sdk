@@ -4,7 +4,7 @@ import json
 
 from yt_dlp import YoutubeDL
 
-from yt_sdk.url import youtube_id2url
+from yt_sdk.url import youtube_id2url, url2youtube_id, raise_if_not_valid_youtube_id
 
 logger = logging.getLogger(__name__)
 INDENT = 4  # ??
@@ -47,30 +47,38 @@ def _extract_info(*, ydl: YoutubeDL, youtube_id: str) -> dict:
 
 
 class YoutubeDownloader:
-    def __init__(self, *, path_folder_output: Path):
-        self.path_folder_output = path_folder_output
+    def __init__(self, *, path_folder: Path):
+        self.path_folder = path_folder
+        self.path_folder.mkdir(exists_ok=True, parents=True)
 
-    def video(self, *, youtube_id: str) -> None:
+    def video_by_youtube_id(self, *, youtube_id: str) -> None:
+        raise_if_not_valid_youtube_id(youtube_id=youtube_id)
         raise NotImplementedError("Implement.")
 
-    def audio(self, *, youtube_id: str) -> dict:
+    def audio_by_youtube_id(self, *, youtube_id: str) -> dict:
         """Solo descarga el audio del video en formato `mp3`.
         - TODO: Ver como descargar el resto de formatos y posibilidades, abstraer.
         """
-        """
-        - Crea un folder en `path_out/<youtube_id>/<youtube_id>.mp3`.
-        """
-        logger.info(f"- Download audio - youtube_id={youtube_id}")
+        raise_if_not_valid_youtube_id(youtube_id=youtube_id)
+
+        logger.info(f"Download audio ~ youtube_id={youtube_id}")
         yt_options = self.get_options_youtube_dl(youtube_id=youtube_id)
         with YoutubeDL(yt_options) as ydl:
             yt_info = _extract_info(ydl=ydl, youtube_id=youtube_id)
             # --> TODO: Se puede seguir procesando el yt_info.
             return yt_info
 
+    def video_by_url(self, *, youtube_id: str) -> dict:
+        raise NotImplementedError("Implement.")
+
+    def audio_by_url(self, *, url: str) -> dict:
+        youtube_id = url2youtube_id(url=url)
+        return self.audio_by_youtube_id(youtube_id=youtube_id)
+
     def get_options_youtube_dl(self, *, youtube_id: str) -> dict:
         return {
             "format": "bestaudio/best",
-            "outtmpl": str(self.path_folder_output / f"{youtube_id}.%(ext)s"),
+            "outtmpl": str(self.path_folder / f"{youtube_id}.%(ext)s"),
             "postprocessors": [
                 {
                     "key": "FFmpegExtractAudio",    # TODO: Ver que se puede tocar acá.

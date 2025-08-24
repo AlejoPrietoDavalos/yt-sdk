@@ -1,11 +1,28 @@
-from typing import Optional
 from urllib.parse import urlparse
 import re
 
-from yt_sdk.typings import T_YoutubeId
+
+def is_valid_youtube_id(*, youtube_id: str) -> bool:
+    """
+    Check if is a valid `youtube_id`.
+
+    ## A valid `youtube_id`:
+    - Is exactly 11 characters long.
+    - Contains only letters, digits, '-' or '_'.
+    """
+    if not isinstance(youtube_id, str):
+        return False
+
+    pattern = r"^[0-9A-Za-z_-]{11}$"
+    return bool(re.match(pattern, youtube_id))
 
 
-def url2youtube_id(*, url: str) -> Optional[T_YoutubeId]:
+def raise_if_not_valid_youtube_id(*, youtube_id: str) -> None:
+    if not is_valid_youtube_id(youtube_id=youtube_id):
+        raise ValueError(f"Invalid youtube_id={youtube_id}")
+
+
+def url2youtube_id(*, url: str) -> str:
     """
     Extrae el `youtube_id` a partir de una URL.
 
@@ -14,28 +31,19 @@ def url2youtube_id(*, url: str) -> Optional[T_YoutubeId]:
     identificador de video válido (11 caracteres alfanuméricos, 
     incluyendo '-' y '_') en parámetros comunes como `v=` o rutas 
     como `/embed/` o `/v/`.
-
-    Args:
-        url (str): URL completa del video de YouTube.
-
-    Returns:
-        `youtube_id`: String de 11 caracteres.
-        si se encuentra y la URL es válida; de lo contrario, `None`.
-
-    Ejemplos:
-        >>> youtube_id_from_url(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        'dQw4w9WgXcQ'
-        >>> youtube_id_from_url(url="https://www.google.com/")
-        None
     """
     parsed_url = urlparse(url)
     if parsed_url.netloc not in ["www.youtube.com", "youtube.com"]:
-        return None
+        youtube_id = None
+    else:
+        # Buscar el ID del video en la URL
+        pattern = r"(?:v=|/)([0-9A-Za-z_-]{11})(?=$|[^0-9A-Za-z_-])"
+        match = re.search(pattern, url)
+        youtube_id = match.group(1) if match else None
 
-    # Buscar el ID del video en la URL
-    pattern = r"(?:v=|/)([0-9A-Za-z_-]{11})(?=$|[^0-9A-Za-z_-])"
-    match = re.search(pattern, url)
-    return match.group(1) if match else None
+    raise_if_not_valid_youtube_id(youtube_id=youtube_id)
+
+    return youtube_id
 
 def youtube_id2url(*, youtube_id: str) -> str:
     """TODO: Esto es correcto?"""
